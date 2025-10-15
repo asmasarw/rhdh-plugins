@@ -107,6 +107,11 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
         <SidebarDivider />
         <SidebarItem
           icon={ResourceOptimizationIconOutlined}
+          to="/redhat-resource-optimization-openshift"
+          text="OpenShift"
+        />
+        <SidebarItem
+          icon={ResourceOptimizationIconOutlined}
           to="/redhat-resource-optimization"
           text="Optimizations"
         />
