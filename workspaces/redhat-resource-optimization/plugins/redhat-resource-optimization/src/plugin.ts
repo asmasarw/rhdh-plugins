@@ -27,7 +27,11 @@ import {
   OrchestratorSlimClient,
 } from '@red-hat-developer-hub/plugin-redhat-resource-optimization-common/clients';
 import { optimizationsApiRef, orchestratorSlimApiRef } from './apis';
-import { optimizationsBreakdownRouteRef, rootRouteRef } from './routes';
+import {
+  optimizationsBreakdownRouteRef,
+  rootRouteRef,
+  openshiftRouteRef,
+} from './routes';
 
 /** @public */
 export const resourceOptimizationPlugin = createPlugin({
@@ -65,6 +69,7 @@ export const resourceOptimizationPlugin = createPlugin({
   routes: {
     root: rootRouteRef,
     breakdown: optimizationsBreakdownRouteRef,
+    openshift: openshiftRouteRef,
   },
 });
 
@@ -74,5 +79,15 @@ export const ResourceOptimizationPage = resourceOptimizationPlugin.provide(
     name: 'ResourceOptimizationPage',
     component: () => import('./Router').then(m => m.Router),
     mountPoint: rootRouteRef,
+  }),
+);
+
+/** @public */
+export const OpenShiftPage = resourceOptimizationPlugin.provide(
+  createRoutableExtension({
+    name: 'OpenShiftPage',
+    component: () =>
+      import('./pages/openshift/OpenShiftPage').then(m => m.OpenShiftPage),
+    mountPoint: openshiftRouteRef,
   }),
 );

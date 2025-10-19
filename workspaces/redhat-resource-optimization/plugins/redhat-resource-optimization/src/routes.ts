@@ -25,3 +25,7 @@ export const optimizationsBreakdownRouteRef = createSubRouteRef({
   parent: rootRouteRef,
   path: '/:id/*',
 });
+
+export const openshiftRouteRef = createRouteRef({
+  id: 'ros.page.openshift',
+});
