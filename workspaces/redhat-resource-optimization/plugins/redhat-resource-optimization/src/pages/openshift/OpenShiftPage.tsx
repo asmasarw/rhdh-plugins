@@ -21,7 +21,11 @@ import {
   Button,
   InfoCard,
 } from '@backstage/core-components';
+import Typography from '@material-ui/core/Typography';
 import { BasePage } from '../../components/BasePage';
+import { Filters } from './components/Filters';
+import { PageLayout } from './components/PageLayout';
+import { Switch } from '@material-ui/core';
 
 // Mock data types for cost management
 interface ProjectCost {
@@ -106,6 +110,9 @@ export function OpenShiftPage() {
     useState('distribute');
   const [timeRange, setTimeRange] = useState('month-to-date');
   const [currency, setCurrency] = useState('USD');
+  const [filterBy, setFilterBy] = useState('project');
+  const [filterOperation, setFilterOperation] = useState('includes');
+  const [filterValue, setFilterValue] = useState('');
   const [showPlatformSum, setShowPlatformSum] = useState(true);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
@@ -171,7 +178,7 @@ export function OpenShiftPage() {
               />
             </div>
 
-            <span>Project name</span>
+            <Typography variant="body2">Project name</Typography>
           </div>
         ),
         field: 'projectName',
@@ -187,11 +194,11 @@ export function OpenShiftPage() {
                 cursor: 'pointer',
               }}
             />
-            <span>{data.projectName}</span>
+            <Typography variant="body2">{data.projectName}</Typography>
             {data.includesOverhead && (
-              <span
+              <Typography
+                variant="caption"
                 style={{
-                  fontSize: '0.75rem',
                   padding: '2px 6px',
                   backgroundColor: '#ddd',
                   border: '1px solid #d2d2d2',
@@ -200,7 +207,7 @@ export function OpenShiftPage() {
                 }}
               >
                 Includes overhead
-              </span>
+              </Typography>
             )}
           </div>
         ),
@@ -244,7 +251,12 @@ export function OpenShiftPage() {
         field: 'actions',
         render: () => (
           <div style={{ display: 'flex', gap: '8px' }}>
-            <Button size="small" variant="outlined" to="#">
+            <Button
+              size="small"
+              variant="outlined"
+              to="#"
+              style={{ borderRadius: 4 }}
+            >
               CSV
             </Button>
           </div>
@@ -256,241 +268,26 @@ export function OpenShiftPage() {
 
   return (
     <BasePage pageTitle="OpenShift" withContentPadding>
-      <div
-        style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
-      >
-        {/* Header with total cost */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-          }}
-        >
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>
-            OpenShift
-          </h1>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-              ${mockCostData.totalCost.toLocaleString()}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: '#666' }}>
-              {mockCostData.dateRange}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flex: 1, gap: '24px' }}>
-          {/* Left Sidebar */}
-          <div style={{ width: '300px', minWidth: '300px' }}>
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
-            >
-              {/* Group by */}
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    marginBottom: '8px',
-                  }}
-                >
-                  <span style={{ fontWeight: 'bold' }}>Group by</span>
-                </div>
-                <select
-                  value={groupBy}
-                  onChange={e => setGroupBy(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc',
-                  }}
-                >
-                  <option value="project">Project</option>
-                  <option value="cluster">Cluster</option>
-                  <option value="node">Node</option>
-                  <option value="tag">Tag</option>
-                </select>
-              </div>
-
-              {/* Overhead cost */}
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                  Overhead cost
-                </div>
-                <select
-                  value={overheadDistribution}
-                  onChange={e => setOverheadDistribution(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc',
-                  }}
-                >
-                  <option value="distribute">
-                    Distribute through cost models
-                  </option>
-                  <option value="dont_distribute">
-                    Dont distribute overhead costs
-                  </option>
-                </select>
-              </div>
-
-              {/* Time */}
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                  Time
-                </div>
-                <select
-                  value={timeRange}
-                  onChange={e => setTimeRange(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc',
-                  }}
-                >
-                  <option value="month-to-date">Month to date</option>
-                  <option value="previos-month">Previous month</option>
-                </select>
-              </div>
-
-              <hr />
-
-              {/* Filter table by */}
-              <InfoCard>
-                <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <span style={{ fontWeight: 'bold' }}>Filter table by</span>
-                  </div>
-                  <select
-                    style={{
-                      width: '100%',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <option value="project">Project</option>
-                    <option value="cluster">Cluster</option>
-                    <option value="node">Node</option>
-                    <option value="tag">Tag</option>
-                  </select>
-                  <select
-                    style={{
-                      width: '100%',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <option value="includes">includes</option>
-                    <option value="excludes">excludes</option>
-                  </select>
-                  <select
-                    style={{
-                      width: '100%',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                    }}
-                  >
-                    <option value="filter">Filter by project</option>
-                  </select>
-                </div>
-              </InfoCard>
-
-              <hr />
-
-              {/* Currency */}
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                  Currency
-                </div>
-                <select
-                  value={currency}
-                  onChange={e => setCurrency(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc',
-                  }}
-                >
-                  <option value="USD">USD ($) - United States Dollar</option>
-                  <option value="EUR">EUR (€) - Euro</option>
-                  <option value="GBP">GBP (£) - British Pound</option>
-                  <option value="JPY">JPY (¥) - Japanese Yen</option>
-                  <option value="AUD">AUD ($) - Australian Dollar</option>
-                  <option value="CAD">CAD ($) - Canadian Dollar</option>
-                  <option value="CHF">CHF (₣) - Swiss Franc</option>
-                  <option value="CNY">CNY (¥) - Chinese Yuan</option>
-                  <option value="INR">INR (₹) - Indian Rupee</option>
-                  <option value="MXN">MXN ($) - Mexican Peso</option>
-                  <option value="NZD">NZD ($) - New Zealand Dollar</option>
-                  <option value="SEK">SEK (kr) - Swedish Krona</option>
-                  <option value="SGD">SGD ($) - Singapore Dollar</option>
-                  <option value="HKD">HKD ($) - Hong Kong Dollar</option>
-                  <option value="TWD">TWD (NT$) - Taiwan Dollar</option>
-                  <option value="THB">THB (฿) - Thai Baht</option>
-                  <option value="RUB">RUB (₽) - Russian Ruble</option>
-                  <option value="BRL">BRL (R$) - Brazilian Real</option>
-                  <option value="ZAR">ZAR (R) - South African Rand</option>
-                  <option value="PLN">PLN (zł) - Polish Zloty</option>
-                  <option value="KRW">KRW (₩) - Korean Won</option>
-                  <option value="TRY">TRY (₺) - Turkish Lira</option>
-                  <option value="IDR">IDR (Rp) - Indonesian Rupiah</option>
-                  <option value="MYR">MYR (RM) - Malaysian Ringgit</option>
-                  <option value="PHP">PHP (₱) - Philippine Peso</option>
-                  <option value="VND">VND (₫) - Vietnamese Dong</option>
-                  <option value="HUF">HUF (Ft) - Hungarian Forint</option>
-                  <option value="CZK">CZK (Kč) - Czech Koruna</option>
-                  <option value="NOK">NOK (kr) - Norwegian Krone</option>
-                  <option value="DKK">DKK (kr) - Danish Krone</option>
-                  <option value="ISK">ISK (kr) - Icelandic Krona</option>
-                  <option value="HRK">HRK (kn) - Croatian Kuna</option>
-                  <option value="RON">RON (lei) - Romanian Leu</option>
-                  <option value="BGN">BGN (лв) - Bulgarian Lev</option>
-                  <option value="UAH">UAH (₴) - Ukrainian Hryvnia</option>
-                  <option value="MDL">MDL (lei) - Moldovan Leu</option>
-                  <option value="GEL">GEL (₾) - Georgian Lari</option>
-                  <option value="ARS">ARS ($) - Argentine Peso</option>
-                  <option value="CLP">CLP ($) - Chilean Peso</option>
-                  <option value="COP">COP ($) - Colombian Peso</option>
-                  <option value="PEN">PEN (S/) - Peruvian Sol</option>
-                  <option value="UYU">UYU ($U) - Uruguayan Peso</option>
-                  <option value="VEF">VEF (Bs) - Venezuelan Bolivar</option>
-                  <option value="BOB">BOB (Bs) - Bolivian Boliviano</option>
-                  <option value="PAB">PAB ($) - Panamanian Balboa</option>
-                  <option value="CUP">CUP ($) - Cuban Peso</option>
-                  <option value="ANG">
-                    ANG ($) - Netherlands Antillean Guilder
-                  </option>
-                  <option value="AWG">AWG ($) - Aruban Florin</option>
-                  <option value="SVC">SVC ($) - Salvadoran Colón</option>
-                  <option value="GTQ">GTQ (Q) - Guatemalan Quetzal</option>
-                  <option value="HNL">HNL (L) - Honduran Lempira</option>
-                  <option value="NIO">NIO (C$) - Nicaraguan Cordoba</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
+      <PageLayout>
+        <PageLayout.Filters>
+          <Filters
+            groupBy={groupBy}
+            overheadDistribution={overheadDistribution}
+            timeRange={timeRange}
+            currency={currency}
+            filterBy={filterBy}
+            filterOperation={filterOperation}
+            filterValue={filterValue}
+            onGroupByChange={setGroupBy}
+            onOverheadDistributionChange={setOverheadDistribution}
+            onTimeRangeChange={setTimeRange}
+            onCurrencyChange={setCurrency}
+            onFilterByChange={setFilterBy}
+            onFilterOperationChange={setFilterOperation}
+            onFilterValueChange={setFilterValue}
+          />
+        </PageLayout.Filters>
+        <PageLayout.Table>
           <div style={{ flex: 1 }}>
             <InfoCard
               title={
@@ -517,66 +314,21 @@ export function OpenShiftPage() {
                     >
                       Projects (100)
                     </h3>
-                    <label
+                    <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
                       }}
                     >
-                      <div
-                        style={{
-                          position: 'relative',
-                          display: 'inline-block',
-                          width: '44px',
-                          height: '24px',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={showPlatformSum}
-                          onChange={e => setShowPlatformSum(e.target.checked)}
-                          style={{
-                            opacity: 0,
-                            width: 0,
-                            height: 0,
-                            position: 'absolute',
-                          }}
-                        />
-                        <span
-                          style={{
-                            position: 'absolute',
-                            cursor: 'pointer',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: showPlatformSum
-                              ? '#4CAF50'
-                              : '#ccc',
-                            transition: '.4s',
-                            borderRadius: '24px',
-                            border: 'none',
-                          }}
-                        >
-                          <span
-                            style={{
-                              position: 'absolute',
-                              content: '""',
-                              height: '18px',
-                              width: '18px',
-                              left: showPlatformSum ? '22px' : '3px',
-                              bottom: '3px',
-                              backgroundColor: 'white',
-                              transition: '.4s',
-                              borderRadius: '50%',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                            }}
-                          />
-                        </span>
-                      </div>
-                      <span>Sum platform costs</span>
-                    </label>
+                      <Switch
+                        checked={showPlatformSum}
+                        onChange={e => setShowPlatformSum(e.target.checked)}
+                      />
+                      <Typography variant="body2">
+                        Sum platform costs
+                      </Typography>
+                    </div>
 
                     <div
                       style={{
@@ -585,7 +337,12 @@ export function OpenShiftPage() {
                         gap: '8px',
                       }}
                     >
-                      <Button size="small" variant="outlined" to="#">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        to="#"
+                        style={{ borderRadius: 4 }}
+                      >
                         CSV
                       </Button>
                     </div>
@@ -612,8 +369,8 @@ export function OpenShiftPage() {
               />
             </InfoCard>
           </div>
-        </div>
-      </div>
+        </PageLayout.Table>
+      </PageLayout>
     </BasePage>
   );
 }

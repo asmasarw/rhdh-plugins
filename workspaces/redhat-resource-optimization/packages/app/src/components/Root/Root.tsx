@@ -36,7 +36,9 @@ import {
   SidebarPage,
   SidebarSpace,
   useSidebarOpenState,
+  SidebarSubmenuItem,
   Link,
+  SidebarSubmenu,
 } from '@backstage/core-components';
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
@@ -105,6 +107,7 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
         <SidebarItem icon={CreateComponentIcon} to="create" text="Create..." />
         {/* End global nav */}
         <SidebarDivider />
+
         <SidebarItem
           icon={ResourceOptimizationIconOutlined}
           to="/redhat-resource-optimization-openshift"
@@ -115,6 +118,7 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
           to="/redhat-resource-optimization"
           text="Optimizations"
         />
+
         <SidebarItem
           icon={OrchestratorIcon}
           to="orchestrator"
