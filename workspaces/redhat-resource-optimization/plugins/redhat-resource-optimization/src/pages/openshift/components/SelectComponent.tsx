@@ -25,11 +25,12 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 const useSelectStyles = makeStyles(
   {
-    root: {},
-    label: { textTransform: 'none' },
+    root: { paddingTop: 0, paddingBottom: 0 },
+    label: { textTransform: 'none', fontWeight: 'bold' },
     formControl: {
       width: '100%',
-      marginTop: 10,
+      marginTop: 5,
+      backgroundColor: '#ffffff',
     },
   },
   {

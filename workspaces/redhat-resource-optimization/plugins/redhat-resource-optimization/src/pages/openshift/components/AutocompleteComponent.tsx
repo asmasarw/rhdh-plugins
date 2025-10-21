@@ -30,7 +30,7 @@ const useAutocompleteStyles = makeStyles(
   {
     root: {},
     label: {},
-    input: {},
+    input: { backgroundColor: '#ffffff' },
     fullWidth: { width: '100%' },
   },
   { name: 'AutocompleteComponent' },

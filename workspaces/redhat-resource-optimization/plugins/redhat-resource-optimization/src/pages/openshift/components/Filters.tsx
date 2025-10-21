@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
 import Divider from '@material-ui/core/Divider';
 import { makeStyles } from '@material-ui/core/styles';
-import { InfoCard } from '@backstage/core-components';
 import { SelectComponent } from './SelectComponent';
 import { AutocompleteComponent } from './AutocompleteComponent';
 
@@ -268,52 +266,52 @@ export function Filters(props: FiltersProps) {
 
         {/* Filter table by */}
         <div className={classes.filterSection}>
-          <InfoCard>
-            <div>
-              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                Filter table by
-              </div>
-              <SelectComponent
-                freeSolo
-                selectOnFocus
-                clearOnBlur
-                handleHomeEndKeys
-                filterSelectedOptions
-                label=""
-                options={['project', 'cluster', 'node', 'tag']}
-                value={filterBy}
-                placeholder=""
-                onChange={(event): void => {
-                  onFilterByChange(event.target.value as string);
-                  onFilterValueChange('');
-                }}
-              />
-              <SelectComponent
-                freeSolo
-                selectOnFocus
-                clearOnBlur
-                handleHomeEndKeys
-                filterSelectedOptions
-                label=""
-                options={['includes', 'excludes']}
-                value={filterOperation}
-                placeholder=""
-                onChange={(event): void => {
-                  onFilterOperationChange(event.target.value as string);
-                }}
-              />
-
-              <AutocompleteComponent
-                label=""
-                options={getFilterValueOptions()}
-                value={filterValue}
-                placeholder={`Filter by ${filterBy || 'project'}`}
-                onChange={(_event, value): void => {
-                  onFilterValueChange((value as string) ?? '');
-                }}
-              />
+          <div
+            style={{ backgroundColor: '#F2F2F2', padding: 16, borderRadius: 8 }}
+          >
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+              Filter table by
             </div>
-          </InfoCard>
+            <SelectComponent
+              freeSolo
+              selectOnFocus
+              clearOnBlur
+              handleHomeEndKeys
+              filterSelectedOptions
+              label=""
+              options={['project', 'cluster', 'node', 'tag']}
+              value={filterBy}
+              placeholder=""
+              onChange={(event): void => {
+                onFilterByChange(event.target.value as string);
+                onFilterValueChange('');
+              }}
+            />
+            <SelectComponent
+              freeSolo
+              selectOnFocus
+              clearOnBlur
+              handleHomeEndKeys
+              filterSelectedOptions
+              label=""
+              options={['includes', 'excludes']}
+              value={filterOperation}
+              placeholder=""
+              onChange={(event): void => {
+                onFilterOperationChange(event.target.value as string);
+              }}
+            />
+
+            <AutocompleteComponent
+              label=""
+              options={getFilterValueOptions()}
+              value={filterValue}
+              placeholder={`Filter by ${filterBy || 'project'}`}
+              onChange={(_event, value): void => {
+                onFilterValueChange((value as string) ?? '');
+              }}
+            />
+          </div>
         </div>
 
         <Divider className={classes.divider} />

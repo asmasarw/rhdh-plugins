@@ -15,17 +15,15 @@
  */
 
 import React, { useMemo, useState, useCallback } from 'react';
-import {
-  Table,
-  TableColumn,
-  Button,
-  InfoCard,
-} from '@backstage/core-components';
+import { Table, TableColumn, InfoCard } from '@backstage/core-components';
 import Typography from '@material-ui/core/Typography';
 import { BasePage } from '../../components/BasePage';
 import { Filters } from './components/Filters';
 import { PageLayout } from './components/PageLayout';
-import { Switch } from '@material-ui/core';
+import { Divider } from '@material-ui/core';
+import { PageHeader } from './components/PageHeader';
+import { TableToolbar } from './components/TableToolbar';
+import BlackSvgIcon from './components/BlackCSV.svg';
 
 // Mock data types for cost management
 interface ProjectCost {
@@ -41,14 +39,16 @@ interface ProjectCost {
 
 interface CostManagementData {
   totalCost: number;
-  dateRange: string;
+  month: string;
+  endDate: string;
   projects: ProjectCost[];
 }
 
 // Mock data
 const mockCostData: CostManagementData = {
   totalCost: 50561.1,
-  dateRange: 'February 1 - 11',
+  month: 'February',
+  endDate: '11',
   projects: [
     {
       id: '1',
@@ -113,7 +113,7 @@ export function OpenShiftPage() {
   const [filterBy, setFilterBy] = useState('project');
   const [filterOperation, setFilterOperation] = useState('includes');
   const [filterValue, setFilterValue] = useState('');
-  const [showPlatformSum, setShowPlatformSum] = useState(true);
+  const [showPlatformSum, setShowPlatformSum] = useState(false);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   // Handle individual row selection
@@ -178,7 +178,9 @@ export function OpenShiftPage() {
               />
             </div>
 
-            <Typography variant="body2">Project name</Typography>
+            <Typography variant="body2" style={{ fontWeight: 'bold' }}>
+              Project name
+            </Typography>
           </div>
         ),
         field: 'projectName',
@@ -200,10 +202,10 @@ export function OpenShiftPage() {
                 variant="caption"
                 style={{
                   padding: '2px 6px',
-                  backgroundColor: '#ddd',
-                  border: '1px solid #d2d2d2',
+                  backgroundColor: '#F5F5F5',
+                  border: '1px solid #D2D2D2',
                   borderRadius: '16px',
-                  color: '#151515',
+                  color: 'black',
                 }}
               >
                 Includes overhead
@@ -220,7 +222,6 @@ export function OpenShiftPage() {
             <div
               style={{
                 color: data.monthOverMonthChange > 0 ? '#d32f2f' : '#2e7d32',
-                fontWeight: 'bold',
               }}
             >
               {Math.abs(data.monthOverMonthChange).toFixed(2)}%
@@ -237,9 +238,7 @@ export function OpenShiftPage() {
         field: 'cost',
         render: data => (
           <div>
-            <div style={{ fontWeight: 'bold' }}>
-              ${data.cost.toLocaleString()}
-            </div>
+            <div>${data.cost.toLocaleString()}</div>
             <div style={{ fontSize: '0.75rem', color: '#666' }}>
               {data.costPercentage.toFixed(2)}% of cost
             </div>
@@ -251,14 +250,7 @@ export function OpenShiftPage() {
         field: 'actions',
         render: () => (
           <div style={{ display: 'flex', gap: '8px' }}>
-            <Button
-              size="small"
-              variant="outlined"
-              to="#"
-              style={{ borderRadius: 4 }}
-            >
-              CSV
-            </Button>
+            <img src={BlackSvgIcon} alt="CSV" style={{ cursor: 'pointer' }} />
           </div>
         ),
       },
@@ -267,7 +259,23 @@ export function OpenShiftPage() {
   );
 
   return (
-    <BasePage pageTitle="OpenShift" withContentPadding>
+    <BasePage pageTitle="" withContentPadding>
+      <PageHeader
+        totalCost={mockCostData.totalCost}
+        month={mockCostData.month}
+        endDate={mockCostData.endDate}
+        customStyle={{ marginTop: '-24px' }}
+      />
+
+      <Divider
+        style={{
+          marginBottom: 24,
+          marginLeft: '-24px',
+          marginRight: '-24px',
+          width: 'calc(100% + 48px)',
+        }}
+      />
+
       <PageLayout>
         <PageLayout.Filters>
           <Filters
@@ -289,69 +297,17 @@ export function OpenShiftPage() {
         </PageLayout.Filters>
         <PageLayout.Table>
           <div style={{ flex: 1 }}>
-            <InfoCard
-              title={
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                    }}
-                  >
-                    <h3
-                      style={{
-                        fontSize: '1.25rem',
-                        fontWeight: 'bold',
-                        margin: 0,
-                      }}
-                    >
-                      Projects (100)
-                    </h3>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}
-                    >
-                      <Switch
-                        checked={showPlatformSum}
-                        onChange={e => setShowPlatformSum(e.target.checked)}
-                      />
-                      <Typography variant="body2">
-                        Sum platform costs
-                      </Typography>
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}
-                    >
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        to="#"
-                        style={{ borderRadius: 4 }}
-                      >
-                        CSV
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              }
-            >
+            <InfoCard>
               <Table<ProjectCost>
                 data={mockCostData.projects}
+                components={{
+                  Toolbar: () => (
+                    <TableToolbar
+                      showPlatformSum={showPlatformSum}
+                      setShowPlatformSum={setShowPlatformSum}
+                    />
+                  ),
+                }}
                 columns={columns}
                 options={{
                   paging: true,
@@ -361,6 +317,7 @@ export function OpenShiftPage() {
                   sorting: true,
                   padding: 'dense',
                 }}
+                style={{ outline: 'none' }}
                 localization={{
                   pagination: {
                     labelRowsPerPage: 'rows',
