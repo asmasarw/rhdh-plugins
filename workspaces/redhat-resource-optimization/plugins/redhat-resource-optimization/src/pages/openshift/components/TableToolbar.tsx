@@ -18,7 +18,7 @@ import React from 'react';
 import { Switch } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
-import GraySvgIcon from './GrayCSV.svg';
+import GraySvgIcon from './grey-csv-icon.svg';
 
 const useStyles = makeStyles({
   switchOff: {

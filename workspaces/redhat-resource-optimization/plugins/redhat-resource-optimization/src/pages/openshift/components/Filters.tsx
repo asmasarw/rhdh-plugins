@@ -262,7 +262,9 @@ export function Filters(props: FiltersProps) {
           </Box>
         </div>
 
-        <Divider className={classes.divider} />
+        <Box marginX={2}>
+          <Divider className={classes.divider} />
+        </Box>
 
         {/* Filter table by */}
         <div className={classes.filterSection}>
@@ -314,7 +316,9 @@ export function Filters(props: FiltersProps) {
           </div>
         </div>
 
-        <Divider className={classes.divider} />
+        <Box marginX={2}>
+          <Divider className={classes.divider} />
+        </Box>
 
         {/* Currency */}
         <div className={classes.filterSection}>

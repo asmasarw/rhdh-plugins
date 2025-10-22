@@ -23,7 +23,7 @@ import { PageLayout } from './components/PageLayout';
 import { Divider } from '@material-ui/core';
 import { PageHeader } from './components/PageHeader';
 import { TableToolbar } from './components/TableToolbar';
-import BlackSvgIcon from './components/BlackCSV.svg';
+import BlackSvgIcon from './components/black-csv-icon.svg';
 
 // Mock data types for cost management
 interface ProjectCost {
