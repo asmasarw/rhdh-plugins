@@ -34,14 +34,13 @@ const useStyles = makeStyles({
 type TableToolbarProps = {
   showPlatformSum: boolean;
   setShowPlatformSum: (showPlatformSum: boolean) => void;
+  projectsCount: number;
 };
 
 /** @public */
 export function TableToolbar(props: TableToolbarProps) {
-  const { showPlatformSum, setShowPlatformSum } = props;
+  const { showPlatformSum, setShowPlatformSum, projectsCount } = props;
   const classes = useStyles();
-
-  const projectsCount = 100;
 
   return (
     <>

@@ -15,7 +15,12 @@
  */
 
 import React, { useMemo, useState, useCallback } from 'react';
-import { Table, TableColumn, InfoCard } from '@backstage/core-components';
+import {
+  Table,
+  TableColumn,
+  InfoCard,
+  ResponseErrorPanel,
+} from '@backstage/core-components';
 import Typography from '@material-ui/core/Typography';
 import { BasePage } from '../../components/BasePage';
 import { Filters } from './components/Filters';
@@ -24,6 +29,9 @@ import { Divider } from '@material-ui/core';
 import { PageHeader } from './components/PageHeader';
 import { TableToolbar } from './components/TableToolbar';
 import BlackSvgIcon from './components/black-csv-icon.svg';
+import { useApi } from '@backstage/core-plugin-api';
+import { optimizationsApiRef } from '../../apis';
+import useAsync from 'react-use/lib/useAsync';
 
 // Mock data types for cost management
 interface ProjectCost {
@@ -105,6 +113,7 @@ const mockCostData: CostManagementData = {
 
 /** @public */
 export function OpenShiftPage() {
+  const api = useApi(optimizationsApiRef);
   const [groupBy, setGroupBy] = useState('project');
   const [overheadDistribution, setOverheadDistribution] =
     useState('distribute');
@@ -115,6 +124,119 @@ export function OpenShiftPage() {
   const [filterValue, setFilterValue] = useState('');
   const [showPlatformSum, setShowPlatformSum] = useState(false);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+
+  // Fetch cost data from API
+  const {
+    value: costData,
+    loading,
+    error,
+  } = useAsync(async () => {
+    try {
+      // Map groupBy to the API format
+      const groupByParam = `group_by[${groupBy}]`;
+
+      // Determine delta based on overhead distribution
+      let deltaParam = 'distributed_cost';
+      if (overheadDistribution === 'dont_distribute') {
+        deltaParam = 'raw_cost';
+      }
+
+      // Determine time scope based on timeRange
+      const timeScopeValue = timeRange === 'month-to-date' ? -1 : -2;
+      const timeScopeUnits = 'month';
+
+      // Build query parameters
+      const queryParams: Record<string, string | number> = {
+        currency: currency as 'USD' | 'EUR' | 'GBP',
+        delta: deltaParam,
+        'filter[limit]': 100,
+        'filter[offset]': 0,
+        'filter[resolution]': 'monthly',
+        'filter[time_scope_units]': timeScopeUnits,
+        'filter[time_scope_value]': timeScopeValue,
+      };
+
+      // Add group_by parameter dynamically
+      queryParams[groupByParam] = '*';
+
+      // Add filter parameters if filterValue is set
+      if (filterValue) {
+        queryParams[`filter[${filterBy}]]`] = filterValue;
+      }
+
+      // Add order_by
+      queryParams['order_by[distributed_cost]'] = 'desc';
+
+      const response = await api.getCostManagementReport({
+        query: queryParams,
+      });
+      return response.json();
+    } catch {
+      return null;
+    }
+  }, [
+    currency,
+    overheadDistribution,
+    timeRange,
+    groupBy,
+    filterBy,
+    filterValue,
+    api,
+  ]);
+
+  // Transform API data to table format
+  const displayData = useMemo(() => {
+    if (!costData) return mockCostData;
+
+    // Extract projects from the API response structure: data[0].projects[]
+    const projects =
+      costData.data?.[0]?.projects?.map((project, index) => {
+        const value = project.values?.[0];
+        const costValue = value?.cost?.distributed?.value || 0;
+        const deltaPercent = value?.delta_percent || 0;
+        const deltaValue = value?.delta_value || 0;
+
+        return {
+          id: `${index}`,
+          projectName: project.project || 'Unknown',
+          cost: costValue,
+          costPercentage: 0, // Will be calculated below
+          monthOverMonthChange: deltaPercent,
+          monthOverMonthValue: Math.abs(deltaValue),
+          includesOverhead:
+            value?.cost?.network_unattributed_distributed?.value !== 0 ||
+            value?.cost?.worker_unallocated_distributed?.value !== 0 ||
+            value?.cost?.platform_distributed?.value !== 0 ||
+            value?.cost?.storage_unattributed_distributed?.value !== 0,
+          previousPeriodCost: costValue + Math.abs(deltaValue),
+        };
+      }) || [];
+
+    // Calculate total cost from meta.total.cost.distributed
+    const totalCost = costData.meta?.total?.cost?.distributed?.value || 0;
+
+    // Calculate percentages
+    const projectsWithPercentage = projects.map(p => ({
+      ...p,
+      costPercentage: totalCost > 0 ? (p.cost / totalCost) * 100 : 0,
+    }));
+
+    // Get month from first date
+    const firstDate = costData.data?.[0]?.date || '';
+    const dateObj = firstDate ? new Date(`${firstDate}-01`) : new Date();
+    const month = dateObj.toLocaleString('en-US', { month: 'long' });
+
+    // endDate should be today's date
+    const today = new Date();
+    const endDate = today.getDate().toString();
+
+    return {
+      totalCost,
+      month,
+      endDate,
+      projects: projectsWithPercentage,
+    };
+  }, [costData]);
 
   // Handle individual row selection
   const handleRowSelect = useCallback(
@@ -131,21 +253,24 @@ export function OpenShiftPage() {
   );
 
   // Handle select all/none
-  const handleSelectAll = (isSelected: boolean) => {
-    if (isSelected) {
-      setSelectedRows(
-        new Set(mockCostData.projects.map(project => project.id)),
-      );
-    } else {
-      setSelectedRows(new Set());
-    }
-  };
+  const handleSelectAll = useCallback(
+    (isSelected: boolean) => {
+      if (isSelected) {
+        setSelectedRows(
+          new Set(displayData.projects.map(project => project.id)),
+        );
+      } else {
+        setSelectedRows(new Set());
+      }
+    },
+    [displayData.projects],
+  );
 
   const isAllSelected =
-    selectedRows.size === mockCostData.projects.length &&
-    mockCostData.projects.length > 0;
+    selectedRows.size === displayData.projects.length &&
+    displayData.projects.length > 0;
   const isIndeterminate =
-    selectedRows.size > 0 && selectedRows.size < mockCostData.projects.length;
+    selectedRows.size > 0 && selectedRows.size < displayData.projects.length;
 
   const columns = useMemo<TableColumn<ProjectCost>[]>(
     () => [
@@ -255,15 +380,25 @@ export function OpenShiftPage() {
         ),
       },
     ],
-    [handleRowSelect, isAllSelected, isIndeterminate, selectedRows],
+    [
+      handleRowSelect,
+      isAllSelected,
+      isIndeterminate,
+      selectedRows,
+      handleSelectAll,
+    ],
   );
+
+  if (error) {
+    return <ResponseErrorPanel error={error} />;
+  }
 
   return (
     <BasePage pageTitle="" withContentPadding>
       <PageHeader
-        totalCost={mockCostData.totalCost}
-        month={mockCostData.month}
-        endDate={mockCostData.endDate}
+        totalCost={displayData.totalCost}
+        month={displayData.month}
+        endDate={displayData.endDate}
         customStyle={{ marginTop: '-24px' }}
       />
 
@@ -299,12 +434,14 @@ export function OpenShiftPage() {
           <div style={{ flex: 1 }}>
             <InfoCard>
               <Table<ProjectCost>
-                data={mockCostData.projects}
+                data={displayData.projects}
+                isLoading={loading}
                 components={{
                   Toolbar: () => (
                     <TableToolbar
                       showPlatformSum={showPlatformSum}
                       setShowPlatformSum={setShowPlatformSum}
+                      projectsCount={displayData?.projects?.length || 0}
                     />
                   ),
                 }}
