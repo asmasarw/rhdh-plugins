@@ -33,6 +33,50 @@ import { useApi } from '@backstage/core-plugin-api';
 import { optimizationsApiRef } from '../../apis';
 import useAsync from 'react-use/lib/useAsync';
 
+// Currency symbol mapping
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  AUD: 'A$',
+  CAD: 'CA$',
+  CHF: 'CHF',
+  CNY: 'CN¥',
+  INR: '₹',
+  MXN: '$',
+  NZD: 'NZ$',
+  SEK: 'SEK',
+  SGD: 'SGD',
+  HKD: 'HK$',
+  TWD: 'NT$',
+  THB: '฿',
+  RUB: '₽',
+  BRL: 'R$',
+  ZAR: 'ZAR',
+  PLN: 'zł',
+  KRW: '₩',
+  TRY: '₺',
+  IDR: 'Rp',
+  MYR: 'RM',
+  PHP: '₱',
+  VND: '₫',
+  HUF: 'Ft',
+  CZK: 'Kč',
+  NOK: 'NOK',
+  DKK: 'DKK',
+  NGN: '₦',
+};
+
+// Helper function to format currency
+const formatCurrency = (value: number, currencyCode: string): string => {
+  const symbol = CURRENCY_SYMBOLS[currencyCode] || currencyCode;
+  return `${symbol}${value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
 // Mock data types for cost management
 interface ProjectCost {
   id: string;
@@ -49,6 +93,7 @@ interface CostManagementData {
   totalCost: number;
   month: string;
   endDate: string;
+  currencyCode: string;
   projects: ProjectCost[];
 }
 
@@ -57,6 +102,7 @@ const mockCostData: CostManagementData = {
   totalCost: 50561.1,
   month: 'February',
   endDate: '11',
+  currencyCode: 'USD',
   projects: [
     {
       id: '1',
@@ -215,6 +261,9 @@ export function OpenShiftPage() {
     // Calculate total cost from meta.total.cost.distributed
     const totalCost = costData.meta?.total?.cost?.distributed?.value || 0;
 
+    // Get currency from API response or use selected currency as fallback
+    const currencyCode = costData.meta?.currency || currency;
+
     // Calculate percentages
     const projectsWithPercentage = projects.map(p => ({
       ...p,
@@ -234,9 +283,10 @@ export function OpenShiftPage() {
       totalCost,
       month,
       endDate,
+      currencyCode,
       projects: projectsWithPercentage,
     };
-  }, [costData]);
+  }, [costData, currency]);
 
   // Handle individual row selection
   const handleRowSelect = useCallback(
@@ -353,7 +403,11 @@ export function OpenShiftPage() {
               {data.monthOverMonthChange > 0 ? ' ▲' : ' ▼'}
             </div>
             <div style={{ fontSize: '0.75rem', color: '#666' }}>
-              ${data.monthOverMonthValue.toLocaleString()} for January 1-11
+              {formatCurrency(
+                data.monthOverMonthValue,
+                displayData.currencyCode,
+              )}{' '}
+              for January 1-11
             </div>
           </div>
         ),
@@ -363,7 +417,7 @@ export function OpenShiftPage() {
         field: 'cost',
         render: data => (
           <div>
-            <div>${data.cost.toLocaleString()}</div>
+            <div>{formatCurrency(data.cost, displayData.currencyCode)}</div>
             <div style={{ fontSize: '0.75rem', color: '#666' }}>
               {data.costPercentage.toFixed(2)}% of cost
             </div>
@@ -386,6 +440,7 @@ export function OpenShiftPage() {
       isIndeterminate,
       selectedRows,
       handleSelectAll,
+      displayData.currencyCode,
     ],
   );
 
@@ -399,6 +454,7 @@ export function OpenShiftPage() {
         totalCost={displayData.totalCost}
         month={displayData.month}
         endDate={displayData.endDate}
+        currencyCode={displayData.currencyCode}
         customStyle={{ marginTop: '-24px' }}
       />
 

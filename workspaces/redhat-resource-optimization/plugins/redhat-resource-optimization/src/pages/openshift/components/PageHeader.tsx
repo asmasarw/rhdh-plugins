@@ -17,16 +17,60 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 
+// Currency symbol mapping (should match the one in OpenShiftPage.tsx)
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  AUD: 'A$',
+  CAD: 'CA$',
+  CHF: 'CHF',
+  CNY: 'CN¥',
+  INR: '₹',
+  MXN: '$',
+  NZD: 'NZ$',
+  SEK: 'SEK',
+  SGD: 'SGD',
+  HKD: 'HK$',
+  TWD: 'NT$',
+  THB: '฿',
+  RUB: '₽',
+  BRL: 'R$',
+  ZAR: 'ZAR',
+  PLN: 'zł',
+  KRW: '₩',
+  TRY: '₺',
+  IDR: 'Rp',
+  MYR: 'RM',
+  PHP: '₱',
+  VND: '₫',
+  HUF: 'Ft',
+  CZK: 'Kč',
+  NOK: 'NOK',
+  DKK: 'DKK',
+  NGN: '₦',
+};
+
+const formatCurrency = (value: number, currencyCode: string): string => {
+  const symbol = CURRENCY_SYMBOLS[currencyCode] || currencyCode;
+  return `${symbol}${value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
 type PageHeaderProps = {
   totalCost: number;
   month: string;
   endDate: string;
+  currencyCode: string;
   customStyle?: React.CSSProperties;
 };
 
 /** @public */
 export function PageHeader(props: PageHeaderProps) {
-  const { totalCost, month, endDate, customStyle = {} } = props;
+  const { totalCost, month, endDate, currencyCode, customStyle = {} } = props;
   return (
     <div
       style={{
@@ -42,7 +86,7 @@ export function PageHeader(props: PageHeaderProps) {
       </Typography>
       <div style={{ textAlign: 'right' }}>
         <Typography variant="h3" style={{ fontWeight: 'bold', margin: 0 }}>
-          ${totalCost.toLocaleString()}
+          {formatCurrency(totalCost, currencyCode)}
         </Typography>
         <Typography variant="body1" style={{ color: '#666', marginTop: '4px' }}>
           {`${month} 1-${endDate}`}
