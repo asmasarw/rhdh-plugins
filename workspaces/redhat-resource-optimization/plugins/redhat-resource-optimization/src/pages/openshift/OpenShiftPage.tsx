@@ -22,6 +22,7 @@ import {
   ResponseErrorPanel,
 } from '@backstage/core-components';
 import Typography from '@material-ui/core/Typography';
+import Tooltip from '@material-ui/core/Tooltip';
 import { BasePage } from '../../components/BasePage';
 import { Filters } from './components/Filters';
 import { PageLayout } from './components/PageLayout';
@@ -369,9 +370,29 @@ export function OpenShiftPage() {
                 width: '18px',
                 height: '18px',
                 cursor: 'pointer',
+                flexShrink: 0,
               }}
             />
-            <Typography variant="body2">{data.projectName}</Typography>
+            <Tooltip title={data.projectName} arrow placement="top">
+              <div
+                style={{
+                  minWidth: 0,
+                  flex: '1 1 auto',
+                  maxWidth: '300px',
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {data.projectName}
+                </Typography>
+              </div>
+            </Tooltip>
             {data.includesOverhead && (
               <Typography
                 variant="caption"
@@ -381,6 +402,7 @@ export function OpenShiftPage() {
                   border: '1px solid #D2D2D2',
                   borderRadius: '16px',
                   color: 'black',
+                  flexShrink: 0,
                 }}
               >
                 Includes overhead
