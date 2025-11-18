@@ -105,7 +105,14 @@ export function OpenShiftPage() {
       }
 
       if (sortField) {
-        const apiSortField = deltaParam;
+        let apiSortField: string;
+        if (sortField === 'cost') {
+          apiSortField = deltaParam;
+        } else if (sortField === 'projectName') {
+          apiSortField = groupBy;
+        } else {
+          apiSortField = deltaParam;
+        }
         const orderByParam = `order_by[${apiSortField}]`;
         queryParams[orderByParam] = sortDirection;
       } else {
@@ -419,8 +426,7 @@ export function OpenShiftPage() {
         const newField = column.field as string;
 
         if (sortField === newField) {
-          const newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
-          setSortDirection(newDirection);
+          setSortDirection(orderDirection);
         } else {
           setSortField(newField);
           setSortDirection(orderDirection);
@@ -428,7 +434,7 @@ export function OpenShiftPage() {
         setCurrentPage(0);
       }
     },
-    [columns, sortField, sortDirection],
+    [columns, sortField],
   );
 
   if (error) {
