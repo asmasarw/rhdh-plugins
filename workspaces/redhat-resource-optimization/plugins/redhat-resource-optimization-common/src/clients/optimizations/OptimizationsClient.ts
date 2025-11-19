@@ -166,9 +166,100 @@ export class OptimizationsClient implements OptimizationsApi {
       this.token = accessToken;
     }
 
+    // Get the proxy base URL for cost-management API
+    const baseUrl = await this.discoveryApi.getBaseUrl('proxy');
+    const uri = '/cost-management/v1/reports/openshift/costs/';
+
+    // Build query string manually
+    const queryParams = new URLSearchParams();
+    if (request.query.currency) {
+      queryParams.append('currency', request.query.currency);
+    }
+    if (request.query.delta) {
+      queryParams.append('delta', request.query.delta);
+    }
+    if (request.query['filter[limit]']) {
+      queryParams.append(
+        'filter[limit]',
+        String(request.query['filter[limit]']),
+      );
+    }
+    if (request.query['filter[offset]']) {
+      queryParams.append(
+        'filter[offset]',
+        String(request.query['filter[offset]']),
+      );
+    }
+    if (request.query['filter[resolution]']) {
+      queryParams.append(
+        'filter[resolution]',
+        request.query['filter[resolution]'],
+      );
+    }
+    if (request.query['filter[time_scope_units]']) {
+      queryParams.append(
+        'filter[time_scope_units]',
+        request.query['filter[time_scope_units]'],
+      );
+    }
+    if (request.query['filter[time_scope_value]']) {
+      queryParams.append(
+        'filter[time_scope_value]',
+        String(request.query['filter[time_scope_value]']),
+      );
+    }
+    // Handle dynamic group_by parameters (project, cluster, node, tag, etc.)
+    Object.keys(request.query).forEach(key => {
+      if (key.startsWith('group_by[') && key.endsWith(']')) {
+        const value = request.query[key as keyof typeof request.query];
+        if (value) {
+          queryParams.append(key, String(value));
+        }
+      }
+    });
+
+    // Handle dynamic order_by parameters (cost, distributed_cost, raw_cost, etc.)
+    Object.keys(request.query).forEach(key => {
+      if (key.startsWith('order_by[') && key.endsWith(']')) {
+        const value = request.query[key as keyof typeof request.query];
+        if (value) {
+          queryParams.append(key, String(value));
+        }
+      }
+    });
+
+    // Handle dynamic filter parameters (filter[project], filter[cluster], filter[node], etc.)
+    // Skip the ones already handled explicitly above (limit, offset, resolution, time_scope_units, time_scope_value)
+    const handledFilterKeys = [
+      'filter[limit]',
+      'filter[offset]',
+      'filter[resolution]',
+      'filter[time_scope_units]',
+      'filter[time_scope_value]',
+    ];
+    Object.keys(request.query).forEach(key => {
+      if (
+        key.startsWith('filter[') &&
+        key.endsWith(']') &&
+        !handledFilterKeys.includes(key)
+      ) {
+        const value = request.query[key as keyof typeof request.query];
+        if (value) {
+          queryParams.append(key, String(value));
+        }
+      }
+    });
+
+    const queryString = queryParams.toString();
+    const url = `${baseUrl}${uri}${queryString ? `?${queryString}` : ''}`;
+
     // Call the cost-management API via backend proxy
-    let response = await this.defaultClient.getCostManagementReport(request, {
-      token: this.token,
+    let response = await this.fetchApi.fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.token}`,
+      },
+      method: 'GET',
     });
 
     // Handle 401 errors by refreshing token and retrying
@@ -176,8 +267,12 @@ export class OptimizationsClient implements OptimizationsApi {
       const { accessToken } = await this.getNewToken();
       this.token = accessToken;
 
-      response = await this.defaultClient.getCostManagementReport(request, {
-        token: this.token,
+      response = await this.fetchApi.fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.token}`,
+        },
+        method: 'GET',
       });
     }
 
@@ -185,7 +280,13 @@ export class OptimizationsClient implements OptimizationsApi {
       throw new Error(response.statusText);
     }
 
-    return response;
+    return {
+      ...response,
+      json: async () => {
+        const data = (await response.json()) as CostManagementReport;
+        return data;
+      },
+    };
   }
 
   /**
