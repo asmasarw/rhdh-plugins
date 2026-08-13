@@ -222,8 +222,8 @@ export function VerticalTabDialog({
             indicatorColor="primary"
             textColor="primary"
           >
-            {tabs.map((tab, i) => (
-              <Tab key={i} label={tab.label} className={classes.tab} />
+            {tabs.map(tab => (
+              <Tab key={tab.label} label={tab.label} className={classes.tab} />
             ))}
           </Tabs>
         </Box>

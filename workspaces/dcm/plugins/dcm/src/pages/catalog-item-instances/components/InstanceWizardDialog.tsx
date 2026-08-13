@@ -40,20 +40,15 @@ import type { InstanceForm, ResourceUserValues } from '../instanceFormTypes';
 
 // ─── Overview Tab ─────────────────────────────────────────────────────────────
 
+type ScalarField = 'display_name' | 'catalog_item_id' | 'api_version';
+type ScalarTouched = Partial<Record<ScalarField, boolean>>;
+
 type OverviewTabProps = Readonly<{
   form: InstanceForm;
   setForm: React.Dispatch<React.SetStateAction<InstanceForm>>;
   catalogItems: CatalogItem[];
-  touched: Partial<
-    Record<'display_name' | 'catalog_item_id' | 'api_version', boolean>
-  >;
-  setTouched: React.Dispatch<
-    React.SetStateAction<
-      Partial<
-        Record<'display_name' | 'catalog_item_id' | 'api_version', boolean>
-      >
-    >
-  >;
+  touched: ScalarTouched;
+  setTouched: React.Dispatch<React.SetStateAction<ScalarTouched>>;
   submitAttempted: boolean;
 }>;
 
@@ -78,14 +73,11 @@ function OverviewTab({
     setTouched(prev => ({ ...prev, catalog_item_id: true }));
   };
 
-  const showFieldError = (
-    field: 'display_name' | 'catalog_item_id' | 'api_version',
-  ) => Boolean((touched[field] || submitAttempted) && errors[field]);
+  const showFieldError = (field: ScalarField) =>
+    Boolean((touched[field] || submitAttempted) && errors[field]);
 
-  const helperOrError = (
-    field: 'display_name' | 'catalog_item_id' | 'api_version',
-    helper: string,
-  ) => (showFieldError(field) && errors[field] ? errors[field]! : helper);
+  const helperOrError = (field: ScalarField, helper: string) =>
+    showFieldError(field) && errors[field] ? errors[field]! : helper;
 
   return (
     <Box display="flex" flexDirection="column" gridGap={20}>
@@ -265,9 +257,7 @@ export function InstanceWizardDialog({
   const [tabsAttempted, setTabsAttempted] = useState<Set<number>>(new Set());
   /** True after the final submit button is pressed — all tabs show errors. */
   const [finalSubmitAttempted, setFinalSubmitAttempted] = useState(false);
-  const [touched, setTouched] = useState<
-    Partial<Record<'display_name' | 'catalog_item_id' | 'api_version', boolean>>
-  >({});
+  const [touched, setTouched] = useState<ScalarTouched>({});
 
   const tabSubmitAttempted = (tabIndex: number) =>
     finalSubmitAttempted || tabsAttempted.has(tabIndex);
