@@ -63,7 +63,16 @@ function _export_plugin {
   echo "Exporting plugin: $plugin_dir"
   cd "$workspace_dir/$plugin_dir"
   npx @red-hat-developer-hub/cli@latest plugin export \
+    --no-install \
     --embed-package @red-hat-developer-hub/backstage-plugin-dcm-common
+  # The CLI's internal 'yarn install --immutable' can fail when the system Yarn
+  # version differs from the one that generated the lockfile (e.g. lockfile v8
+  # vs Yarn 4.17+ expecting v10).  Run a regular install instead.
+  # Only backend plugins produce a yarn.lock in dist-dynamic.
+  if [[ -f dist-dynamic/yarn.lock ]]; then
+    echo "Running yarn install in $plugin_dir/dist-dynamic..."
+    (cd dist-dynamic && yarn install)
+  fi
   cd "$workspace_dir"
   return 0
 }
