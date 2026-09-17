@@ -106,7 +106,7 @@ const useSidebarItemStyles = makeStyles(theme => {
       borderLeft: `1px solid ${
         dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)'
       }`,
-      '& [data-testid="login-button"]': {
+      '& .BackstageSidebarItem-iconContainer': {
         marginLeft: 0,
       },
     },
@@ -127,7 +127,7 @@ const useSidebarItemStyles = makeStyles(theme => {
         borderLeft: `1px solid ${
           dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)'
         }`,
-        '& [data-testid="login-button"]': {
+        '& .BackstageSidebarItem-iconContainer': {
           marginLeft: 0,
         },
       },
